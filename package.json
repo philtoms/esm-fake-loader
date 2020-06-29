@@ -1,6 +1,7 @@
 {
   "name": "esm-fake-loader",
   "version": "1.0.0",
+  "author": "Phil Toms <phil.toms@hotmail.co.uk>",
   "main": "index.js",
   "license": "MIT",
   "type": "module",
@@ -17,5 +18,22 @@
     "files": [
       "**/*.test.js"
     ]
-  }
+  },
+  "keywords": [
+    "esm",
+    "es modules",
+    "import",
+    "dynamic import",
+    "export",
+    "require",
+    "inject",
+    "test",
+    "mock",
+    "stub",
+    "spy"
+  ],
+  "bugs": {
+    "url": "https://github.com/philtoms/esm-fake-loader/issues"
+  },
+  "homepage": "https://github.com/philtoms/esm-fake-loader"
 }
