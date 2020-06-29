@@ -1,0 +1,21 @@
+{
+  "name": "esm-fake-loader",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --loader ./index --experimental-specifier-resolution=node ./node_modules/.bin/ava --verbose"
+  },
+  "devDependencies": {
+    "ava": "^3.8.2"
+  },
+  "ava": {
+    "nodeArguments": [
+      "--no-warnings"
+    ],
+    "files": [
+      "**/*.test.js"
+    ]
+  }
+}
