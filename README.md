@@ -1,6 +1,6 @@
 # esm-fake-loader
 
-For Javascript applications running as `"type": "module"`, this esm-loader provides extended import syntax for mocking and stubbing builtin, package and module imports.
+For Javascript applications running as `"type": "module"` or `.mjs`, this esm-loader provides extended import syntax for mocking and stubbing builtin, package and module imports.
 
 ## Usage
 

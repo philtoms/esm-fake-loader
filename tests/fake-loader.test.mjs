@@ -52,7 +52,7 @@ test.serial('mocked named exports - shorthand', async (t) => {
 
 test.serial('external fake file', async (t) => {
   const { default: sutD, sut1, sut2, sut3 } = await import(
-    './module?__fake=./module.mock.js'
+    './module?__fake=./module.mock.mjs'
   );
   t.is(sutD(456), 456);
   t.is(sutD.calls, 1);
@@ -64,7 +64,7 @@ test.serial('external fake file', async (t) => {
 
 test.serial('nested external fake file', async (t) => {
   await import('./module1?__fake');
-  const { sut1 } = await import('./module?__fake=./module.mock.js');
+  const { sut1 } = await import('./module?__fake=./module.mock.mjs');
   t.is(sut1(456), 456);
 });
 
@@ -99,12 +99,12 @@ test.serial('builtin method mock reset', async (t) => {
 
 test.serial('unload faked', async (t) => {
   await import('./module?__fake=unload');
-  const { default: sut } = await import('./module');
+  const { default: sut } = await import('./module.mjs');
   t.is(sut(456), 123);
 });
 
 test.serial('overload un-faked', async (t) => {
   await import('./module?__fake');
-  const { default: sut } = await import('./module');
+  const { default: sut } = await import('./module.mjs');
   t.is(sut(456), 456);
 });

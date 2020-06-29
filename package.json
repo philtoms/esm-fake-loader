@@ -9,9 +9,8 @@
     "type": "git",
     "url": "git://github.com/philtoms/esm-fake-loader.git"
   },
-  "main": "index.js",
+  "main": "index.mjs",
   "license": "MIT",
-  "type": "module",
   "scripts": {
     "test": "node --loader ./index --experimental-specifier-resolution=node ./node_modules/.bin/ava --verbose"
   },
@@ -23,7 +22,7 @@
       "--no-warnings"
     ],
     "files": [
-      "**/*.test.js"
+      "**/*.test.mjs"
     ]
   },
   "keywords": [
