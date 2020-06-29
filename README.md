@@ -1,6 +1,6 @@
 # esm-fake-loader
 
-For Javascript applications running as `"type": "module"` or `.mjs`, this esm-loader provides extended import syntax for mocking and stubbing builtin, package and module imports.
+For Javascript applications running as `"type": "module"` or `.mjs`, this esm-loader provides extended import syntax for mocking and stubbing built-in, package and module imports.
 
 ## Usage
 
@@ -51,7 +51,7 @@ test.serial('should return something else', async t => {
 
 ## Fake descriptor syntax
 
-`esm-fake-loader` supports inline fakes and external fake modules, both defined as extended selectors of the form `selector?__fake=descriptor`
+`esm-fake-loader` supports inline fakes and external fake modules, both defined as extended specifiers of the form `specifier?__fake=descriptor`
 
 ### Using inline fake descriptors - stubs
 
