@@ -2,6 +2,13 @@
   "name": "esm-fake-loader",
   "version": "1.0.0",
   "author": "Phil Toms <phil.toms@hotmail.co.uk>",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/philtoms/esm-fake-loader.git"
+  },
   "main": "index.js",
   "license": "MIT",
   "type": "module",
