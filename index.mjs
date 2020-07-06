@@ -44,6 +44,17 @@ export async function resolve(specifier, context, defaultResolve) {
   const { url } = defaultResolve(target || specifier, context, defaultResolve);
 
   if (fakeType) {
+    // reload a module as is?
+    if (fakeResponse === 'reload') {
+      const fakeSignedUrl = `${url}?__fake${++fakeSequence}`;
+      fakes[fakeSignedUrl] = fs.readFileSync(
+        url.replace('file://', ''),
+        'utf8'
+      );
+
+      return { url: fakeSignedUrl };
+    }
+
     let fake =
       new URL('file://fake?' + fakeResponse).searchParams.get('fake') ||
       fakeResponse;

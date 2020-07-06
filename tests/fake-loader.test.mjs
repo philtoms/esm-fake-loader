@@ -108,3 +108,8 @@ test.serial('overload un-faked', async (t) => {
   const { default: sut } = await import('./module.mjs');
   t.is(sut(456), 456);
 });
+
+test.serial('reload sut', async (t) => {
+  const { default: sut } = await import('./module?__fake=reload');
+  t.is(sut(456), 123);
+});

@@ -2,12 +2,16 @@
 
 For Javascript applications running as `"type": "module"` or `.mjs`, this esm-loader provides extended import syntax for mocking and stubbing built-in, package and module imports.
 
-## Usage
+## Install
 
 ```
 yarn add esm-fake-loader
 npm install -save-dev esm-fake-loader
+```
 
+## Usage
+
+```
 // test.js
 import fs from 'fs?__fake=export const readFileSync = () => "some fake contents..."'
 
@@ -177,9 +181,9 @@ export const func3 = mock(() => true);
 export { func4 };
 ```
 
-### Unloading fakes
+### reloading modules
 
-Fakes can be unloaded at any time in the test cycle with the explicit `?__fake=unload` descriptor.
+Modules under test can be reloaded at any time in the test cycle with the explicit `?__fake=reload` descriptor.
 
 ```javascript
 // sut.js
@@ -192,13 +196,13 @@ test('should be faked', async t => {
   t.is(sut, 123)
 })
 
-test('should unload', async t => {
-  const sut = await import 'sut?__fake=unload'
+test('should be reloaded and un-faked', async t => {
+  const sut = await import 'sut?__fake=reload'
   t.is(sut, 'abc')
 })
 ```
 
-This pattern is most useful in external fake modules where the module can be imported in an unloaded state before faking target exports.
+This pattern is most useful in test scenarios with varying fake response requirements.
 
 ### Resetting mocks
 
@@ -257,7 +261,33 @@ export async function resolve(specifier, context, defaultResolve) {
 
 The [ava](https://github.com/avajs/ava) test runner (`esm-fake-loader` was developed primarily for ava integration) provides an [Isolated environment for each test file](https://github.com/avajs/ava/blob/master/docs/01-writing-tests.md#process-isolation) which boils down to a dedicated node instance for each test file - thus loaded module instances are reliably recycled on a test file basis.
 
-However, it can be appropriate to unload or reset a fake during the test cycle. The fake descriptor `__fake=unload` applied to an import specifier will remove the module from the fake module map.
+However, it can be appropriate to re-purpose a fake during the test cycle. To do this, apply the fake descriptor `__fake=reload` to the module under test so that it is reloaded with the new fake import.
+
+A useful pattern for this kind of test cycle is a fake factory:
+
+```javascript
+// sut.js
+import { existsSync } from 'fs';
+export default (path) => existsSync(path);
+
+// test.js
+const fake = (exp) =>
+  // generate a new fake
+  import(`fs?__fake=export const existsSync = response => response==='${exp}'`)
+    // then reload the sut to apply the fake
+    .then(() => import('./sut?__fake=reload'))
+    .then((module) => module.default);
+
+test.serial('first', async (t) => {
+  const sut = await fake('/path/to/first');
+  t.is(sut('/path/to/first'), true);
+});
+
+test.serial('second', async (t) => {
+  const sut = await mock('/path/to/second');
+  t.is(sut('/path/to/second'), true);
+});
+```
 
 ### Concurrent test environments
 
