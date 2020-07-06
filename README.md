@@ -272,8 +272,9 @@ export default (path) => existsSync(path);
 
 // test.js
 const fake = (exp) =>
-  // generate a new fake
-  import(`fs?__fake=export const existsSync = response => response==='${exp}'`)
+  // generate a new fake response
+  const response = 'export const existsSync = response => response`;
+  import(`fs?__fake=${response}==='${exp}'`)
     // then reload the sut to apply the fake
     .then(() => import('./sut?__fake=reload'))
     .then((module) => module.default);
@@ -284,7 +285,7 @@ test.serial('first', async (t) => {
 });
 
 test.serial('second', async (t) => {
-  const sut = await mock('/path/to/second');
+  const sut = await fake('/path/to/second');
   t.is(sut('/path/to/second'), true);
 });
 ```
