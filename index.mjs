@@ -41,18 +41,16 @@ export async function resolve(specifier, context, defaultResolve) {
     ) || { groups: {} }
   ).groups;
 
-  const { url } = defaultResolve(target || specifier, context, defaultResolve);
-
-  // // this may be a virtual module
-  // let url;
-  // try {
-  //   url = defaultResolve(target, context, defaultResolve).url;
-  // } catch (err) {
-  //   url = `file://${target}`;
-  //   if (!fakeType && !fakes[url]) {
-  //     throw err;
-  //   }
-  // }
+  // this may be a virtual module
+  let url;
+  try {
+    url = defaultResolve(target, context, defaultResolve).url;
+  } catch (err) {
+    url = `file://${target}`;
+    if (!fakeType && !fakes[url]) {
+      throw err;
+    }
+  }
 
   if (fakeType) {
     if (fakeResponse === 'unload') {

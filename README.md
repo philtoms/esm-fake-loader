@@ -224,6 +224,28 @@ test('should reset calls', async t => {
 })
 ```
 
+### Virtual fakes
+
+If a specifier does not resolve to a file based module or package, then a virtual fake is created. This has the same behavior and specification as any other fakes, but of course it's not strictly a fake because these is no underlying implementation.
+
+`const virtual = import 'virtual?__fake=mock()'`
+
+Virtual fakes are useful for creating and passing around mocks and spies. For example, the following API under test expects a logging facility to be provided, otherwise it defaults to `console.log`.
+
+```javascript
+const handlerMW = errorHandler({ log }); // accepts winston, defaults to console
+```
+
+You could quite easily fake `console?__fake={log: mock()}`, but what if you want to use console for other debugging tasks?
+
+Just create a virtual fake:
+
+```javascript
+import log from 'fake-logger?__fake={log: mock()}';
+
+const handlerMW = errorHandler({ log }); // accepts mocked logger
+```
+
 ## Caveats and considerations
 
 ### Experimental loader status

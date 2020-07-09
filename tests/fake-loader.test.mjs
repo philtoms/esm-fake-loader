@@ -113,3 +113,8 @@ test.serial('reload sut', async (t) => {
   const { default: sut } = await import('./module?__fake=reload');
   t.is(sut(456), 123);
 });
+
+test.serial('virtual module', async (t) => {
+  const { default: sut } = await import('virtual?__fake=mock(123)');
+  t.is(sut(456), 123);
+});
