@@ -35,7 +35,7 @@ const inject = (fake) =>
   ${fake || 'export default mock()'}`;
 
 export async function resolve(specifier, context, defaultResolve) {
-  let { target, fakeType, fakeResponse = '' } = (
+  let { target = specifier, fakeType, fakeResponse = '' } = (
     specifier.match(
       /(?<target>[^?]+)\?(?<fakeType>__fake)(\=(?<fakeResponse>.+))?/
     ) || { groups: {} }
@@ -43,62 +43,73 @@ export async function resolve(specifier, context, defaultResolve) {
 
   const { url } = defaultResolve(target || specifier, context, defaultResolve);
 
-  if (fakeType) {
-    // reload a module as is?
-    if (fakeResponse === 'reload') {
-      const fakeSignedUrl = `${url}?__fake${++fakeSequence}`;
-      fakes[fakeSignedUrl] = fs.readFileSync(
-        url.replace('file://', ''),
-        'utf8'
-      );
+  // // this may be a virtual module
+  // let url;
+  // try {
+  //   url = defaultResolve(target, context, defaultResolve).url;
+  // } catch (err) {
+  //   url = `file://${target}`;
+  //   if (!fakeType && !fakes[url]) {
+  //     throw err;
+  //   }
+  // }
 
-      return { url: fakeSignedUrl };
+  if (fakeType) {
+    if (fakeResponse === 'unload') {
+      Reflect.deleteProperty(fakes, url);
+      return { url };
     }
 
-    let fake =
-      new URL('file://fake?' + fakeResponse).searchParams.get('fake') ||
+    // reload a module as is?
+    if (fakeResponse === 'reload' && fakes[url]) {
+      fakes[url] = {
+        source: fs.readFileSync(url.replace('file://', ''), 'utf8'),
+        signedUrl: `${url}?__fake${++fakeSequence}`,
+      };
+
+      return { url: fakes[url].signedUrl };
+    }
+
+    let fakeDir =
+      new URL('file://__fake?' + fakeResponse).searchParams.get('__fake') ||
       fakeResponse;
 
     // test for relative external fake
     try {
       const { url } = defaultResolve(fakeResponse, context, defaultResolve);
-      fake = url.replace('file://', '');
+      fakeDir = url.replace('file://', '');
     } catch (err) {}
-
-    // strip out stale fakes
-    fakes = Object.entries(fakes)
-      .filter(([key]) => !key.startsWith(url))
-      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-
-    // done here, leave now
-    if (fakeResponse === 'unload') return { url };
-
-    // assign a unique signature to this fake.
-    const fakeSignedUrl = `${url}?__fake${++fakeSequence}`;
 
     try {
       // apply, load and cache descriptor as faked module
-      fakes[fakeSignedUrl] = inject(
-        fake
-          ? fs.existsSync(fake)
-            ? fs.readFileSync(fake, 'utf8')
-            : !fake.startsWith('export')
-            ? `export default ${fake}`
-            : fake
-          : fake
+      const source = inject(
+        fakeDir
+          ? fs.existsSync(fakeDir)
+            ? fs.readFileSync(fakeDir, 'utf8')
+            : !fakeDir.startsWith('export')
+            ? `export default ${fakeDir}`
+            : fakeDir
+          : fakeDir
       );
+
+      // don't try to re-use previously loaded modules by testing for
+      // sameness of source. If the fake is already then its dependencies
+      // are loaded too. Not good for nested fakes. There is a test for it
+      const signedUrl = /*        fakes[url] && fakes[url].source === source
+          ? fakes[url].signedUrl
+          : */ `${url}?__fake${++fakeSequence}`;
+
+      fakes[url] = { source, signedUrl };
+
+      return { url: signedUrl };
     } catch (err) {
-      err.message = `${fake} - ${err.message}`;
+      err.message = `${fakeDir} - ${err.message}`;
       throw err;
     }
-
-    return { url: fakeSignedUrl };
   } else {
     // substitute fake signed signature for fake map entry
-    const { url } = defaultResolve(specifier, context);
-    const fakeSignedUrl = Object.keys(fakes).find((key) => key.startsWith(url));
-    if (fakeSignedUrl) {
-      return { url: fakeSignedUrl };
+    if (fakes[url]) {
+      return { url: fakes[url].signedUrl };
     }
   }
 
@@ -107,7 +118,8 @@ export async function resolve(specifier, context, defaultResolve) {
 
 export async function getFormat(url, context, defaultGetFormat) {
   // mocked builtins become modules
-  if (fakes[url]) {
+  const key = url.split('?__fake')[0];
+  if (fakes[key]) {
     return {
       format: 'module',
     };
@@ -118,8 +130,9 @@ export async function getFormat(url, context, defaultGetFormat) {
 
 export async function getSource(url, context, defaultGetSource) {
   // substitute fake source if available
-  if (fakes[url]) {
-    return { source: fakes[url] };
+  const key = url.split('?__fake')[0];
+  if (fakes[key]) {
+    return { source: fakes[key].source };
   }
   // Defer to Node.js for all other URLs.
   return defaultGetSource(url, context, defaultGetSource);
