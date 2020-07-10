@@ -59,7 +59,7 @@ export async function resolve(specifier, context, defaultResolve) {
     }
 
     // reload a module as is?
-    if (fakeResponse === 'reload' && fakes[url]) {
+    if (fakeResponse === 'reload') {
       fakes[url] = {
         source: fs.readFileSync(url.replace('file://', ''), 'utf8'),
         signedUrl: `${url}?__fake${++fakeSequence}`,
