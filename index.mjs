@@ -37,7 +37,7 @@ const inject = (fake) =>
 export async function resolve(specifier, context, defaultResolve) {
   let { target = specifier, fakeType, fakeResponse = '' } = (
     specifier.match(
-      /(?<target>[^?]+)\?(?<fakeType>__fake)(\=(?<fakeResponse>.+))?/
+      /(?<target>[^?]+)[\?\&](?<fakeType>__fake)(\=(?<fakeResponse>.+))?/
     ) || { groups: {} }
   ).groups;
 
@@ -46,7 +46,7 @@ export async function resolve(specifier, context, defaultResolve) {
   try {
     url = defaultResolve(target, context, defaultResolve).url;
   } catch (err) {
-    url = `file://${target}`;
+    url = `file://${target.split('?')[0]}`;
     if (!fakeType && !fakes[url]) {
       throw err;
     }
@@ -68,26 +68,26 @@ export async function resolve(specifier, context, defaultResolve) {
       return { url: fakes[url].signedUrl };
     }
 
-    let fakeDir =
+    let fake =
       new URL('file://__fake?' + fakeResponse).searchParams.get('__fake') ||
       fakeResponse;
 
     // test for relative external fake
     try {
       const { url } = defaultResolve(fakeResponse, context, defaultResolve);
-      fakeDir = url.replace('file://', '');
+      fake = url.replace('file://', '');
     } catch (err) {}
 
     try {
       // apply, load and cache descriptor as faked module
       const source = inject(
-        fakeDir
-          ? fs.existsSync(fakeDir)
-            ? fs.readFileSync(fakeDir, 'utf8')
-            : !fakeDir.startsWith('export')
-            ? `export default ${fakeDir}`
-            : fakeDir
-          : fakeDir
+        fake
+          ? fs.existsSync(fake)
+            ? fs.readFileSync(fake, 'utf8')
+            : !fake.startsWith('export')
+            ? `export default ${fake}`
+            : fake
+          : fake
       );
 
       // don't try to re-use previously loaded modules by testing for
@@ -101,7 +101,7 @@ export async function resolve(specifier, context, defaultResolve) {
 
       return { url: signedUrl };
     } catch (err) {
-      err.message = `${fakeDir} - ${err.message}`;
+      err.message = `${fake} - ${err.message}`;
       throw err;
     }
   } else {

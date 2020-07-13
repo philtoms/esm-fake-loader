@@ -1,6 +1,6 @@
 # esm-fake-loader
 
-For Javascript applications running as `"type": "module"` or `.mjs`, this esm-loader provides extended import syntax for mocking and stubbing built-in, package and module imports.
+For testing Javascript applications running as `"type": "module"` or `.mjs`, this esm-loader provides extended import syntax for mocking and stubbing built-in, package and module imports.
 
 ## Install
 
@@ -14,6 +14,12 @@ npm install -save-dev esm-fake-loader
 ```
 // test.js
 import fs from 'fs?__fake=export const readFileSync = () => "some fake contents..."'
+
+
+// app.js
+import { readFileSync } from 'fs'
+readFileSync('./path', 'utf8') // => "some fake contents..."
+
 
 // run tests in loader context...
 node --loader esm-fake-loader ./path/to/test/runner
