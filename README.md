@@ -196,7 +196,7 @@ Modules under test can be reloaded at any time in the test cycle with the explic
 export default 'abc';
 
 // test.js
-import sut from 'sut?__fake=123
+import sut from 'sut?__fake=123'
 
 test('should be faked', async t => {
   t.is(sut, 123)
@@ -217,17 +217,17 @@ Mocks will continue to accumulate calls and call values from the first to the la
 Mocks can be reset at any time in the test cycle by calling `mocked.reset()`.
 
 ```javascript
-import sut from 'sut?__fake=mock(123)
+import sut from 'sut?__fake=mock(123)';
 
-test('should accumulate calls', async t => {
+test('should accumulate calls', async (t) => {
   sut();
-  t.is(sut.calls, 1)
-})
+  t.is(sut.calls, 1);
+});
 
-test('should reset calls', async t => {
-  sut.reset()
-  t.is(sut.calls, 0)
-})
+test('should reset calls', async (t) => {
+  sut.reset();
+  t.is(sut.calls, 0);
+});
 ```
 
 ### Virtual fakes
@@ -301,7 +301,7 @@ export default (path) => existsSync(path);
 // test.js
 const fake = (exp) =>
   // generate a new fake response
-  const response = 'export const existsSync = response => response`;
+  const response = 'export const existsSync = response => response';
   import(`fs?__fake=${response}==='${exp}'`)
     // then reload the sut to apply the fake
     .then(() => import('./sut?__fake=reload'))
