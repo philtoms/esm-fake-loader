@@ -4,14 +4,17 @@ import sut from './module?__fake';
 test('inline default (identity) function stub', async (t) => {
   t.is(sut(456), 456);
 });
+
 test.serial('inline default value stub', async (t) => {
   const { default: sut } = await import('./module?__fake=456');
   t.is(sut, 456);
 });
+
 test.serial('inline exported value stub', async (t) => {
   const { val: sut } = await import('./module?__fake=export const val = 456');
   t.is(sut, 456);
 });
+
 test.serial('inline multiple exports', async (t) => {
   const { default: sut1, sut2, sut3 } = await import(
     './module?__fake=export default 456; export const sut2 = 456; export const sut3 = 456'
@@ -20,6 +23,7 @@ test.serial('inline multiple exports', async (t) => {
   t.is(sut2, 456);
   t.is(sut3, 456);
 });
+
 test.serial('mocked default exports - shorthand', async (t) => {
   const { default: sut } = await import('./module?__fake=mock(456)');
   t.is(sut(456), 456);
@@ -79,6 +83,7 @@ test.serial('builtin method stub', async (t) => {
   const fs = await import('fs?__fake=export const existsSync = () => true');
   t.true(fs.existsSync());
 });
+
 test.serial('builtin method mock', async (t) => {
   const fs = await import(
     'fs?__fake=export const existsSync = mock(id => true)'
@@ -88,6 +93,7 @@ test.serial('builtin method mock', async (t) => {
   fs.existsSync('./dir');
   t.is(fs.existsSync.calls, 2);
 });
+
 test.serial('builtin method mock reset', async (t) => {
   const fs = await import(
     'fs?__fake=export const existsSync = mock(id => true)'
@@ -95,6 +101,13 @@ test.serial('builtin method mock reset', async (t) => {
   fs.existsSync.reset();
   fs.existsSync('./dir');
   t.is(fs.existsSync.calls, 1);
+});
+
+test.serial('reset mocked function returns', async (t) => {
+  const fs = await import('fs?__fake=export const existsSync = mock(true)');
+  t.is(fs.existsSync('./dir'), true);
+  fs.existsSync.reset(false);
+  t.is(fs.existsSync('./dir'), false);
 });
 
 test.serial('unload faked', async (t) => {

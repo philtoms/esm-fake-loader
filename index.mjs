@@ -18,14 +18,21 @@ let fakeSequence = 0;
 //  mocked(123)
 //  assert(mocked.calls === 1)
 //  assert(mocked.values[0][0], 123)
+//  mocked.reset(returns)
 const inject = (fake) =>
   `const mock = (faked = (id) => id) => {
     const mocked = (...args) => {
       ++mocked.calls;
       mocked.values.push(args);
-      return typeof faked==='function' ? faked(...args) : faked;
+      const returns = mocked.returns === undefined ? args : [mocked.returns]
+      return typeof faked==='function'
+        ? faked(...returns)
+        : mocked.returns === undefined
+          ? faked
+          : mocked.returns;
     }
-    mocked.reset = () => {
+    mocked.reset = (returns) => {
+      mocked.returns = returns
       mocked.calls=0;
       mocked.values=[];
       return mocked;
