@@ -28,7 +28,7 @@ node --loader esm-fake-loader ./path/to/test/runner
 
 ## How it works
 
-The loader is installed through the node commend line and filters all import specifiers ending in `?__fake=...` descriptor strings. The additional information in these extended requests is used to stub or mock the specified module. The descriptor can either be a file path to a fake module, or an inline mock or stub - as seen below.
+The loader is installed through the node command line and filters all import specifiers ending in `?__fake=...` descriptor strings. The additional information in these extended requests is used to stub or mock the specified module. The descriptor can either be a file path to a fake module, or an inline mock or stub.
 
 ```javascript
 // package.json (for convenience)
@@ -151,7 +151,7 @@ External fakes are standard esm modules and adhere to the rules and conventions 
 `?__fake=/path/to/my-fake.js`<br>
 `?__fake=my-fake-package`<br>
 
-Their main advantage over inline fakes is their extended influence over the faked module when defining mocks, stubs and even spies.
+The main advantage of external fake modules over inline fakes is their extended influence over the faked module when defining mocks, stubs and even spies.
 
 ### Create multiple fake exports using stubs and mocks.
 
@@ -187,7 +187,7 @@ export const func3 = mock(() => true);
 export { func4 };
 ```
 
-### reloading modules
+### Reloading modules
 
 Modules under test can be reloaded at any time in the test cycle with the explicit `?__fake=reload` descriptor.
 
@@ -232,7 +232,7 @@ test('should reset calls', async (t) => {
 
 ### Virtual fakes
 
-If a specifier does not resolve to a file based module or package, then a virtual fake is created. This has the same behavior and specification as any other fakes, but of course it's not strictly a fake because these is no underlying implementation.
+If a specifier does not resolve to a file based module or package, then a virtual fake is created. This has the same behavior and specification as any other fake, but of course it's not strictly a fake because these is no underlying implementation.
 
 `const virtual = import 'virtual?__fake=mock()'`
 
