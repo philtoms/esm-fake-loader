@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from "fs";
 
 let fakes = {};
 let fakeSequence = 0;
@@ -39,10 +39,14 @@ const inject = (fake) =>
     }
     return mocked.reset();
   }
-  ${fake || 'export default mock()'}`;
+  ${fake || "export default mock()"}`;
 
 export async function resolve(specifier, context, defaultResolve) {
-  let { target = specifier, fakeType, fakeResponse = '' } = (
+  let {
+    target = specifier,
+    fakeType,
+    fakeResponse = "",
+  } = (
     specifier.match(
       /(?<target>[^?]+)[\?\&](?<fakeType>__fake)(\=(?<fakeResponse>.+))?/
     ) || { groups: {} }
@@ -53,22 +57,22 @@ export async function resolve(specifier, context, defaultResolve) {
   try {
     url = defaultResolve(target, context, defaultResolve).url;
   } catch (err) {
-    url = `file://${target.split('?')[0]}`;
+    url = `file://${target.split("?")[0]}`;
     if (!fakeType && !fakes[url]) {
       throw err;
     }
   }
 
   if (fakeType) {
-    if (fakeResponse === 'unload') {
+    if (fakeResponse === "unload") {
       Reflect.deleteProperty(fakes, url);
       return { url };
     }
 
     // reload a module as is?
-    if (fakeResponse === 'reload') {
+    if (fakeResponse === "reload") {
       fakes[url] = {
-        source: fs.readFileSync(url.replace('file://', ''), 'utf8'),
+        source: fs.readFileSync(url.replace("file://", ""), "utf8"),
         signedUrl: `${url}?__fake${++fakeSequence}`,
       };
 
@@ -76,13 +80,13 @@ export async function resolve(specifier, context, defaultResolve) {
     }
 
     let fake =
-      new URL('file://__fake?' + fakeResponse).searchParams.get('__fake') ||
+      new URL("file://__fake?" + fakeResponse).searchParams.get("__fake") ||
       fakeResponse;
 
     // test for relative external fake
     try {
       const { url } = defaultResolve(fakeResponse, context, defaultResolve);
-      fake = url.replace('file://', '');
+      fake = url.replace("file://", "");
     } catch (err) {}
 
     try {
@@ -90,8 +94,8 @@ export async function resolve(specifier, context, defaultResolve) {
       const source = inject(
         fake
           ? fs.existsSync(fake)
-            ? fs.readFileSync(fake, 'utf8')
-            : !fake.startsWith('export')
+            ? fs.readFileSync(fake, "utf8")
+            : !fake.startsWith("export")
             ? `export default ${fake}`
             : fake
           : fake
@@ -123,10 +127,10 @@ export async function resolve(specifier, context, defaultResolve) {
 
 export async function getFormat(url, context, defaultGetFormat) {
   // mocked builtins become modules
-  const key = url.split('?__fake')[0];
+  const key = url.split("?__fake")[0];
   if (fakes[key]) {
     return {
-      format: 'module',
+      format: "module",
     };
   }
   //Defer to Node.js for all other URLs.
@@ -135,7 +139,7 @@ export async function getFormat(url, context, defaultGetFormat) {
 
 export async function getSource(url, context, defaultGetSource) {
   // substitute fake source if available
-  const key = url.split('?__fake')[0];
+  const key = url.split("?__fake")[0];
   if (fakes[key]) {
     return { source: fakes[key].source };
   }

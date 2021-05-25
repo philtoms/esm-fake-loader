@@ -1,4 +1,4 @@
-import sut1 from './module1.mjs';
+import sut1 from "./module1.mjs";
 
 export default mock();
 export { sut1 };
