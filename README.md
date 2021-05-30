@@ -5,7 +5,7 @@ For testing Javascript applications running as `"type": "module"` or `.mjs`, thi
 ## Install
 
 ```
-yarn add esm-fake-loader
+yarn add esm-fake-loader --dev
 npm install -save-dev esm-fake-loader
 ```
 
@@ -13,7 +13,7 @@ npm install -save-dev esm-fake-loader
 
 ```
 // test.js
-import fs from 'fs?__fake=export const readFileSync = () => "some fake contents..."'
+import 'fs?__fake=export const readFileSync = () => "some fake contents..."'
 
 
 // app.js
@@ -28,7 +28,7 @@ node --loader esm-fake-loader ./path/to/test/runner
 
 ## How it works
 
-The loader is installed through the node commend line and filters all import specifiers ending in `?__fake=...` descriptor strings. The additional information in these extended requests is used to stub or mock the specified module. The descriptor can either be a file path to a fake module, or an inline mock or stub - as seen below.
+The loader is installed through the node command line and filters all import specifiers ending in `?__fake=...` descriptor strings. The additional information in these extended requests is used to stub or mock the specified module. The descriptor can either be a file path to a fake module, or an inline mock or stub...
 
 ```javascript
 // package.json (for convenience)
@@ -39,7 +39,6 @@ The loader is installed through the node commend line and filters all import spe
 // sut.js
 import fs from 'fs'
 export default path => fs.existSync(path) ? 'something' : 'something else'
-
 
 // test.js
 import test from 'ava'
@@ -114,9 +113,9 @@ The mock wrapper function patches the fake with the following properties:
 - `reset()` - a helper to clear the calls and values of a mock.
 
 ```javascript
-import mod from 'module.js?__fake=mock(true)';
+import mod from "module.js?__fake=mock(true)";
 
-test('mod test', (t) => {
+test("mod test", (t) => {
   t.true(mod(111));
   t.true(mod(222));
   t.is(mod.calls, 2);
@@ -151,40 +150,38 @@ External fakes are standard esm modules and adhere to the rules and conventions 
 `?__fake=/path/to/my-fake.js`<br>
 `?__fake=my-fake-package`<br>
 
-Their main advantage over inline fakes is their extended influence over the faked module when defining mocks, stubs and even spies.
-
-### Create multiple fake exports using stubs and mocks.
+The main advantage of external fakes is their extended influence over the faked module when defining mocks, stubs and even spies...
 
 ```javascript
 // test.js
-import { existsSync, readFileSync } from 'fs?./fs.fakes.js';
+import { existsSync, readFileSync } from "fs?__fake=./fs.fakes.js";
 
 // fs.fake.js
 export const existSync = () => true;
 export const readFileSync = mock(() => true);
 ```
 
-### Import the original module to fake out a sub-set of its functionality.
+External fakes are also the way to go when faking out a sub-set of a module's functionality...
 
 ```javascript
 // test.js
-import faked from 'module.js?./mod.fakes.js';
+import mod, { func2, func3, func4 } from "mod.js?__fake=./mod.fakes.js";
 
 // mod.fakes.js
-// bypass the faked version of this module by unloading
-import func1, { func2, func3 } from 'module.js?__fake=unload';
+// bypass the faked version of this module by unloading the fake here
+import mod, { func1, func2, func3 } from "mod.js?__fake=unload";
 
-// spy...
+// spy on default export...
 export default mock((...args) => func1(...args));
 
-// stub...
-export const func2 = () => true;
+// stub func1...
+export const func1 = () => true;
 
-// mock...
-export const func3 = mock(() => true);
+// mock func2...
+export const func2 = mock(() => true);
 
-// bypass...
-export { func4 };
+// pass unfaked func3...
+export { func3 };
 ```
 
 ### reloading modules
@@ -217,14 +214,14 @@ Mocks will continue to accumulate calls and call values from the first to the la
 Mocks can be reset at any time in the test cycle by calling `mocked.reset()`.
 
 ```javascript
-import sut from 'sut?__fake=mock(123)';
+import sut from "sut?__fake=mock(123)";
 
-test('should accumulate calls', async (t) => {
+test("should accumulate calls", async (t) => {
   sut();
   t.is(sut.calls, 1);
 });
 
-test('should reset calls', async (t) => {
+test("should reset calls", async (t) => {
   sut.reset();
   t.is(sut.calls, 0);
 });
@@ -232,9 +229,9 @@ test('should reset calls', async (t) => {
 
 ### Virtual fakes
 
-If a specifier does not resolve to a file based module or package, then a virtual fake is created. This has the same behavior and specification as any other fakes, but of course it's not strictly a fake because these is no underlying implementation.
+If a specifier does not resolve to a file based module or package, then a virtual fake is created. This has the same behavior and specification as any other esm fakes (but of course it's not strictly a fake because these is no underlying implementation)...
 
-`const virtual = import 'virtual?__fake=mock()'`
+`import virtual from 'virtual?__fake=mock()'`
 
 Virtual fakes are useful for creating and passing around mocks and spies. For example, the following API under test expects a logging facility to be provided, otherwise it defaults to `console.log`.
 
@@ -247,7 +244,7 @@ You could quite easily fake `console?__fake={log: mock()}`, but what if you want
 Just create a virtual fake:
 
 ```javascript
-import log from 'fake-logger?__fake={log: mock()}';
+import log from "fake-logger?__fake={log: mock()}";
 
 const handlerMW = errorHandler({ log }); // accepts mocked logger
 ```
@@ -264,18 +261,20 @@ Whilst esm is officially supported in nodeJS, the ability to override the defaul
 
 Given that your project is fully ESM, its possible that you already have need for custom loader logic. Use a loader wrapper module to pre-load `esm-fake-loader` over your `custom-loader`.
 
+`node --experimental-loader ./wrapper-loader ./node_modules/.bin/ava`
+
 ```javascript
 // wrapper-loader.js
 
 // overload all custom named exports. In this example, only the resolve export has been customized. All other loader steps will be handled by esm-fake-loader.
 
-import { resolve as fakeResolve } from 'esm-fake-loader';
-import { resolve as customResole } from './custom-loader';
+import { resolve as fakeResolve } from "esm-fake-loader";
+import { resolve as customResole } from "./custom-loader";
 
 export async function resolve(specifier, context, defaultResolve) {
   const resolved = fakeResolve(specifier, context, defaultResolve);
   // test for fake status
-  return resolved.url.includes('?__fake')
+  return resolved.url.includes("?__fake")
     ? resolved
     : customResole(specifier, context, defaultResolve);
 }
@@ -323,25 +322,41 @@ test.serial('second', async (t) => {
 Test frameworks like `ava` run tests concurrently, and this can be a problem for dynamically loaded modules where independent tests might fake different aspects of the same module. The following `ava` test suite is indeterminate and likely to fail.
 
 ```javascript
-test('1', async (t) => {
+test("1", async (t) => {
   // might return 222
-  await import('module?__fake=111');
+  await import("module?__fake=111");
 });
-test('2', async (t) => {
+test("2", async (t) => {
   // might return 111
-  await import('module?__fake=222');
+  await import("module?__fake=222");
 });
 ```
 
 It is therefore recommended to run dynamic tests serially to avoid potential concurrency issues.
 
 ```javascript
-test.serial('1', async (t) => {
+test.serial("1", async (t) => {
   // guaranteed to return 111
-  await import('module?__fake=111');
+  await import("module?__fake=111");
 });
-test.serial('2', async (t) => {
+test.serial("2", async (t) => {
   // guaranteed to return 222
-  await import('module?__fake=222');
+  await import("module?__fake=222");
 });
+```
+
+### Modules loaded in external virtual fakes
+
+As described in [Using external fakes](#Using-external-fakes), it is often convenient to import additional module resources in the fake module. But there is a gotcha when the importing fake module is itself a virtual module or unmounted module reference) and the imported module is selected through a relative path.
+
+```javascript
+// inside fakes.js....
+import mod from "./mod.js"; // this will fail with ERR_INVALID_FILE_URL_HOST
+```
+
+Use a root filepath when importing local modules into a virtual fake
+
+```javascript
+// inside fakes.js....
+import mod1 from "/root/path/to/mod.js"; // this will resolve
 ```

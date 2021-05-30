@@ -138,3 +138,9 @@ test.serial("virtual module", async (t) => {
   const { default: sut } = await import("virtual?__fake=mock(123)");
   t.is(sut(456), 123);
 });
+
+test.serial("nested module in virtual fake", async (t) => {
+  await import("./module1?__fake=unload");
+  const { sut1 } = await import("virtual?__fake=./module.mock.mjs");
+  t.is(sut1(456), 123);
+});

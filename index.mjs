@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 
 let fakes = {};
 let fakeSequence = 0;
@@ -59,7 +60,15 @@ export async function resolve(specifier, context, defaultResolve) {
   } catch (err) {
     url = `file://${target.split("?")[0]}`;
     if (!fakeType && !fakes[url]) {
-      throw err;
+      try {
+        url = defaultResolve(
+          `file://${path.join(process.cwd(), target)}`,
+          context,
+          defaultResolve
+        ).url;
+      } catch (err) {
+        throw err;
+      }
     }
   }
 
